@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Question;
+use App\Tag;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class QuestionController extends Controller
 {
@@ -55,8 +57,11 @@ class QuestionController extends Controller
         $input = request()->all();
 
         $question = new Question($input);
+
         $question->user()->associate(Auth::user());
         $question->save();
+
+        $this->updateHashTags($question);
 
         return redirect()->route('home')->with('message', 'IT WORKS!');
 
@@ -64,6 +69,43 @@ class QuestionController extends Controller
 
         // return redirect()->route('questions.show', ['id' => $question->id]);
 
+    }
+
+
+    /*
+     * First, we grab the unique hash tag from question body
+     * Second, for each tag, if it already exists in tag table, we grab tag id;
+     *  if not, insert new data and grab tag id
+     * THen we attach each tag id to question (insert data to question_tag)
+     */
+    function updateHashTags($question)
+    {
+        $body = $question->body;
+        preg_match_all("/(#\w+)/", $body, $matches);
+        $hashtags = false;
+        if($matches)
+        {
+            $array = array_count_values($matches[0]);
+            $hashtags = array_keys($array);
+        }
+
+        if($hashtags != false)
+        {
+            for($i = 0; $i < count($hashtags); $i++)
+            {
+                $tag = DB::table('tags')->where('tname', $hashtags[$i])->first();
+                // tag not exist, create one first
+                if($tag == null)
+                {
+                    $tagId = DB::table('tags')->insertGetId(
+                        ['tname' => $hashtags[$i], 'created_at' => now(),  'updated_at' => now()]
+                    );
+                } else {
+                    $tagId = $tag -> id;
+                }
+                $question->tags()->attach($tagId);
+            }
+        }
     }
 
 
@@ -112,6 +154,10 @@ class QuestionController extends Controller
         $question->body = $request->body;
         $question->save();
 
+        // reset all existing tags and then re-add all tags, similar to store()
+        $question->tags()->detach();
+        $this->updateHashTags($question);
+
         return redirect()->route('questions.show',['question_id' => $question->id])->with('message', 'Saved');
     }
 
@@ -123,6 +169,7 @@ class QuestionController extends Controller
      */
     public function destroy(Question $question)
     {
+        $question->tags()->detach();
         $question->delete();
         return redirect()->route('home')->with('message', 'Deleted');
 
