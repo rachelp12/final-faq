@@ -108,6 +108,22 @@ class QuestionController extends Controller
         }
     }
 
+    /*
+     * If there is any tag, replace it with href link
+     */
+    function parseQuestionBody($question)
+    {
+        $body = $question-> body;
+        $hashtags = $question->tags()->get();
+        for($i = 0; $i < count($hashtags); $i++)
+        {
+            $id = $hashtags[$i]->id;
+            $url = url("/tag/{$id}/questions");
+            $html = '<a href="'. $url.'">'.$hashtags[$i]->tname.'</a>';
+            $body = str_replace($hashtags[$i]->tname, $html, $body);
+        }
+        return $body;
+    }
 
     /**
      * Display the specified resource.
@@ -117,8 +133,10 @@ class QuestionController extends Controller
      */
     public function show(Question $question)
     {
-        return view('question')->with('question', $question);
+        $questionCustomBody = $this->parseQuestionBody($question);
+        return view('question', ['question'=> $question, 'questionCustomBody' => $questionCustomBody]);
     }
+
 
     /**
      * Show the form for editing the specified resource.

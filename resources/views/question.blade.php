@@ -8,8 +8,7 @@
                     <div class="card-header">Question</div>
 
                     <div class="card-body">
-
-                        {{$question->body}}
+                       {!!$questionCustomBody!!}
                     </div>
                     <div class="card-footer">
                         <a class="btn btn-primary float-right"
