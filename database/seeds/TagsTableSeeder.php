@@ -12,13 +12,5 @@ class TagsTableSeeder extends Seeder
     public function run()
     {
         factory(App\Tag::class, 10)->create();
-//->each(function ($tag) {
-//            for ($i = 1; $i <= 3; $i++) {
-//                $questionId = App\Question::inRandomOrder()->first()->value('id');
-//                dd($questionId);
-//                dd($tag->questions());
-//                $tag->questions()->attach($questionId);
-//            }
-//        });
     }
 }

@@ -32,7 +32,7 @@ class TagController extends Controller
         $questions = $tag->questions()->get();
         for($i = 0; $i < count($questions); $i++)
         {
-            $questions[$i]->customQuestionBody = $this->parseQuestionBody($questions[$i]);
+            $questions[$i]->customQuestionBody = $this->parseQuestionBody($questions[$i], $tag);
         }
         return view('tag', ['questions'=> $questions, 'tag' => $tag]);
     }
@@ -40,7 +40,7 @@ class TagController extends Controller
     /*
      * If there is any tag, replace it with href link
      */
-    function parseQuestionBody($question)
+    function parseQuestionBody($question, $tag)
     {
         $body = $question-> body;
         $hashtags = $question->tags()->get();
@@ -48,7 +48,14 @@ class TagController extends Controller
         {
             $id = $hashtags[$i]->id;
             $url = url("../tag/{$id}/questions");
-            $html = '<a href="'. $url.'">'.$hashtags[$i]->tname.'</a>';
+            if ($id == $tag->id)
+            {
+                $html = '<a href="'. $url.'"><b>'.$hashtags[$i]->tname.'</b></a>';
+            } else
+            {
+                $html = '<a href="'. $url.'">'.$hashtags[$i]->tname.'</a>';
+            }
+
             $body = str_replace($hashtags[$i]->tname, $html, $body);
         }
         return $body;
