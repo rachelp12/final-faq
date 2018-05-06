@@ -17,4 +17,13 @@ class Question extends Model
     {
         return $this->hasMany('App\Answer');
     }
+
+    /*
+     * The tags that belong to the question
+     */
+
+    public function tags()
+    {
+        return $this->belongsToMany('App\Tag');
+    }
 }
